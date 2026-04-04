@@ -13,3 +13,6 @@ run-ui:
 
 clean:
 	rm -rf bin
+
+test:
+	npm --prefix ./static run test

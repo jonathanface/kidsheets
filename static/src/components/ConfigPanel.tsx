@@ -1,11 +1,14 @@
+import { useState } from "react";
 import {
   WorksheetConfig,
   WorksheetSection,
   GradeLevel,
   WorksheetType,
+  WorksheetCategory,
   ArithmeticOperation,
+  WORKSHEET_CATEGORIES,
 } from "../types/Worksheet";
-import { GRADE_LABELS, DEFAULT_ARITHMETIC_BY_GRADE } from "../utils/generators";
+import { GRADE_LABELS, DEFAULT_ARITHMETIC_BY_GRADE, DEFAULT_LOGIC_PROBLEM_COUNT } from "../utils/generators";
 
 interface Props {
   config: WorksheetConfig;
@@ -21,20 +24,66 @@ function createSection(type: WorksheetType, grade: GradeLevel): WorksheetSection
   switch (type) {
     case "arithmetic":
       return { id, type, arithmetic: { ...DEFAULT_ARITHMETIC_BY_GRADE[grade] } };
+    case "fractions":
+      return { id, type, fractions: { problemCount: 8 } };
+    case "counting":
+      return { id, type, counting: { problemCount: 8 } };
+    case "telling-time":
+      return { id, type, tellingTime: { problemCount: 6 } };
+    case "money":
+      return { id, type, money: { problemCount: 6 } };
     case "tracing":
       return { id, type, tracing: { content: "uppercase", repetitions: 4 } };
+    case "mazes":
+      return { id, type, mazes: { mazeCount: 2 } };
     case "spelling":
       return { id, type, spelling: { wordCount: 8, mode: "fill-in-blank" } };
+    case "sight-words":
+      return { id, type, sightWords: { wordCount: 10 } };
+    case "vocabulary":
+      return { id, type, vocabulary: { wordCount: 6 } };
+    case "logic-puzzle":
+    case "logic-sorting":
+    case "logic-sequencing":
+      return { id, type, logic: { problemCount: DEFAULT_LOGIC_PROBLEM_COUNT[grade] } };
   }
 }
 
 const TYPE_LABELS: Record<WorksheetType, string> = {
   arithmetic: "Arithmetic",
+  fractions: "Fractions",
+  counting: "Counting",
+  "telling-time": "Telling Time",
+  money: "Money",
+  "sight-words": "Sight Words",
+  vocabulary: "Vocabulary",
   tracing: "Tracing",
+  mazes: "Mazes",
   spelling: "Spelling",
+  "logic-puzzle": "Odd One Out",
+  "logic-sorting": "Sorting",
+  "logic-sequencing": "What Comes Next",
 };
 
+function categoryForType(type: WorksheetType): WorksheetCategory {
+  for (const [cat, def] of Object.entries(WORKSHEET_CATEGORIES)) {
+    if (def.types.includes(type)) return cat as WorksheetCategory;
+  }
+  return "math";
+}
+
 export const ConfigPanel = ({ config, onChange, onRegenerate, onPrint }: Props) => {
+  const [expandedCategories, setExpandedCategories] = useState<Set<WorksheetCategory>>(new Set());
+
+  const toggleCategory = (cat: WorksheetCategory) => {
+    setExpandedCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(cat)) next.delete(cat);
+      else next.add(cat);
+      return next;
+    });
+  };
+
   const updateSection = (id: string, updated: Partial<WorksheetSection>) => {
     onChange({
       ...config,
@@ -62,11 +111,11 @@ export const ConfigPanel = ({ config, onChange, onRegenerate, onPrint }: Props) 
     onChange({
       ...config,
       grade,
-      sections: config.sections.map((s) =>
-        s.type === "arithmetic"
-          ? { ...s, arithmetic: { ...DEFAULT_ARITHMETIC_BY_GRADE[grade] } }
-          : s
-      ),
+      sections: config.sections.map((s) => {
+        if (s.type === "arithmetic") return { ...s, arithmetic: { ...DEFAULT_ARITHMETIC_BY_GRADE[grade] } };
+        if (s.type.startsWith("logic-")) return { ...s, logic: { problemCount: DEFAULT_LOGIC_PROBLEM_COUNT[grade] } };
+        return s;
+      }),
     });
   };
 
@@ -98,16 +147,35 @@ export const ConfigPanel = ({ config, onChange, onRegenerate, onPrint }: Props) 
 
       <div className="sections-header">
         <h3>Sections</h3>
-        <div className="add-section-buttons">
-          {(["arithmetic", "tracing", "spelling"] as WorksheetType[]).map((type) => (
-            <button
-              key={type}
-              className="btn btn-small"
-              onClick={() => addSection(type)}
-            >
-              + {TYPE_LABELS[type]}
-            </button>
-          ))}
+        <div className="add-section-categories">
+          {Object.entries(WORKSHEET_CATEGORIES).map(([key, cat]) => {
+            const catKey = key as WorksheetCategory;
+            const isExpanded = expandedCategories.has(catKey);
+            return (
+              <div key={key} className={`category-group${isExpanded ? " expanded" : ""}`} data-category={key}>
+                <button
+                  className="category-toggle"
+                  onClick={() => toggleCategory(catKey)}
+                >
+                  <span className="category-chevron">{isExpanded ? "▾" : "▸"}</span>
+                  <span className="category-label">{cat.label}</span>
+                </button>
+                {isExpanded && (
+                  <div className="category-buttons">
+                    {cat.types.map((type) => (
+                      <button
+                        key={type}
+                        className="btn btn-small"
+                        onClick={() => addSection(type)}
+                      >
+                        + {TYPE_LABELS[type]}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -116,9 +184,9 @@ export const ConfigPanel = ({ config, onChange, onRegenerate, onPrint }: Props) 
       )}
 
       {config.sections.map((section) => (
-        <div key={section.id} className="section-config">
+        <div key={section.id} className="section-config" data-category={categoryForType(section.type)}>
           <div className="section-header">
-            <span className="section-type-badge">{TYPE_LABELS[section.type]}</span>
+            <span className="section-type-badge" data-category={categoryForType(section.type)}>{TYPE_LABELS[section.type]}</span>
             <button
               className="btn-remove"
               onClick={() => removeSection(section.id)}
@@ -134,16 +202,71 @@ export const ConfigPanel = ({ config, onChange, onRegenerate, onPrint }: Props) 
               onChange={(arithmetic) => updateSection(section.id, { arithmetic })}
             />
           )}
+          {section.type === "fractions" && section.fractions && (
+            <SectionProblemCount
+              config={section.fractions}
+              onChange={(fractions) => updateSection(section.id, { fractions })}
+              max={12}
+            />
+          )}
+          {section.type === "counting" && section.counting && (
+            <SectionProblemCount
+              config={section.counting}
+              onChange={(counting) => updateSection(section.id, { counting })}
+              max={12}
+            />
+          )}
+          {section.type === "telling-time" && section.tellingTime && (
+            <SectionProblemCount
+              config={section.tellingTime}
+              onChange={(tellingTime) => updateSection(section.id, { tellingTime })}
+              max={12}
+            />
+          )}
+          {section.type === "money" && section.money && (
+            <SectionProblemCount
+              config={section.money}
+              onChange={(money) => updateSection(section.id, { money })}
+              max={12}
+            />
+          )}
           {section.type === "tracing" && section.tracing && (
             <SectionTracing
               config={section.tracing}
               onChange={(tracing) => updateSection(section.id, { tracing })}
             />
           )}
+          {section.type === "mazes" && section.mazes && (
+            <SectionMazeCount
+              config={section.mazes}
+              onChange={(mazes) => updateSection(section.id, { mazes })}
+            />
+          )}
           {section.type === "spelling" && section.spelling && (
             <SectionSpelling
               config={section.spelling}
               onChange={(spelling) => updateSection(section.id, { spelling })}
+            />
+          )}
+          {section.type === "sight-words" && section.sightWords && (
+            <SectionWordCount
+              config={section.sightWords}
+              onChange={(sightWords) => updateSection(section.id, { sightWords })}
+              max={20}
+            />
+          )}
+          {section.type === "vocabulary" && section.vocabulary && (
+            <SectionWordCount
+              config={section.vocabulary}
+              onChange={(vocabulary) => updateSection(section.id, { vocabulary })}
+              max={10}
+            />
+          )}
+          {section.type.startsWith("logic-") && section.logic && (
+            <SectionProblemCount
+              config={section.logic}
+              onChange={(logic) => updateSection(section.id, { logic })}
+              max={6}
             />
           )}
         </div>
@@ -296,6 +419,79 @@ function SectionSpelling({
           <option value="word-scramble">Word Scramble</option>
           <option value="write-word">Write the Word</option>
         </select>
+      </label>
+    </div>
+  );
+}
+
+function SectionProblemCount({
+  config,
+  onChange,
+  max = 12,
+}: {
+  config: { problemCount: number };
+  onChange: (c: { problemCount: number }) => void;
+  max?: number;
+}) {
+  return (
+    <div className="section-options">
+      <label>
+        Problems
+        <input
+          type="number"
+          min={1}
+          max={max}
+          value={config.problemCount}
+          onChange={(e) => onChange({ ...config, problemCount: parseInt(e.target.value) || 4 })}
+        />
+      </label>
+    </div>
+  );
+}
+
+function SectionWordCount({
+  config,
+  onChange,
+  max = 10,
+}: {
+  config: { wordCount: number };
+  onChange: (c: { wordCount: number }) => void;
+  max?: number;
+}) {
+  return (
+    <div className="section-options">
+      <label>
+        Words
+        <input
+          type="number"
+          min={1}
+          max={max}
+          value={config.wordCount}
+          onChange={(e) => onChange({ ...config, wordCount: parseInt(e.target.value) || 8 })}
+        />
+      </label>
+    </div>
+  );
+}
+
+function SectionMazeCount({
+  config,
+  onChange,
+}: {
+  config: { mazeCount: number };
+  onChange: (c: { mazeCount: number }) => void;
+}) {
+  return (
+    <div className="section-options">
+      <label>
+        Mazes
+        <input
+          type="number"
+          min={1}
+          max={4}
+          value={config.mazeCount}
+          onChange={(e) => onChange({ ...config, mazeCount: parseInt(e.target.value) || 2 })}
+        />
       </label>
     </div>
   );

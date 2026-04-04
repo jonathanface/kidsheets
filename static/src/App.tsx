@@ -25,21 +25,35 @@ export const App = () => {
     setRegenerateKey((k) => k + 1);
   }, []);
 
+  const handleRemoveSection = useCallback((id: string) => {
+    setConfig((prev) => ({
+      ...prev,
+      sections: prev.sections.filter((s) => s.id !== id),
+    }));
+  }, []);
+
   const [printWithAnswers, setPrintWithAnswers] = useState(false);
 
   const handlePrint = useCallback((withAnswers: boolean) => {
     setPrintWithAnswers(withAnswers);
-    // Wait for state to apply before printing
+    // Double rAF ensures React has committed the re-render before printing
     requestAnimationFrame(() => {
-      window.print();
+      requestAnimationFrame(() => {
+        window.print();
+      });
     });
   }, []);
 
   return (
     <div className={`app ${printWithAnswers ? "print-with-answers" : "print-without-answers"}`}>
       <header className="app-header no-print">
-        <h1>KidCharts</h1>
-        <p>Printable worksheets for kids</p>
+        <div className="app-header-inner">
+          <img src="/logo.png" alt="KidSheets logo" className="app-logo" />
+          <div>
+            <h1>KidSheets</h1>
+            <p>Create. Print. Learn!</p>
+          </div>
+        </div>
       </header>
       <main className="app-main">
         <aside className="no-print">
@@ -51,7 +65,7 @@ export const App = () => {
           />
         </aside>
         <section className="preview-area">
-          <WorksheetPreview config={config} regenerateKey={regenerateKey} />
+          <WorksheetPreview config={config} regenerateKey={regenerateKey} onRemoveSection={handleRemoveSection} />
         </section>
       </main>
     </div>
