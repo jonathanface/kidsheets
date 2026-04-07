@@ -1,28 +1,28 @@
 import { useCallback, useState } from "react";
 import { WorksheetConfig } from "./types/Worksheet";
-import { DEFAULT_ARITHMETIC_BY_GRADE } from "./utils/generators";
 import { ConfigPanel } from "./components/ConfigPanel";
 import { WorksheetPreview } from "./components/WorksheetPreview";
 import "./css/app.css";
 
-const defaultConfig: WorksheetConfig = {
+const DEFAULT_CONFIG: WorksheetConfig = {
   grade: "1",
-  title: "Math Practice",
-  sections: [
-    {
-      id: "default-1",
-      type: "arithmetic",
-      arithmetic: { ...DEFAULT_ARITHMETIC_BY_GRADE["1"] },
-    },
-  ],
+  title: "",
+  sections: [],
 };
 
 export const App = () => {
-  const [config, setConfig] = useState<WorksheetConfig>(defaultConfig);
+  const [config, setConfig] = useState<WorksheetConfig>(DEFAULT_CONFIG);
   const [regenerateKey, setRegenerateKey] = useState(0);
+  const [resetKey, setResetKey] = useState(0);
 
   const handleRegenerate = useCallback(() => {
     setRegenerateKey((k) => k + 1);
+  }, []);
+
+  const handleReset = useCallback(() => {
+    setConfig({ ...DEFAULT_CONFIG });
+    setRegenerateKey((k) => k + 1);
+    setResetKey((k) => k + 1);
   }, []);
 
   const handleRemoveSection = useCallback((id: string) => {
@@ -48,7 +48,7 @@ export const App = () => {
     <div className={`app ${printWithAnswers ? "print-with-answers" : "print-without-answers"}`}>
       <header className="app-header no-print">
         <div className="app-header-inner">
-          <img src="/logo.png" alt="KidSheets logo" className="app-logo" />
+          <img src="/logo.png" alt="KidSheets logo" className="app-logo" onClick={handleReset} />
           <div>
             <h1>KidSheets</h1>
             <p>Create. Print. Learn!</p>
@@ -58,6 +58,7 @@ export const App = () => {
       <main className="app-main">
         <aside className="no-print">
           <ConfigPanel
+            key={resetKey}
             config={config}
             onChange={setConfig}
             onRegenerate={handleRegenerate}

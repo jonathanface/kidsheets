@@ -5,35 +5,45 @@ import { WorksheetConfig } from "../../types/Worksheet";
 import { DEFAULT_ARITHMETIC_BY_GRADE } from "../../utils/generators";
 
 describe("WorksheetPreview", () => {
-  it("renders worksheet title", () => {
+  it("renders worksheet title when sections exist", () => {
     const config: WorksheetConfig = {
       grade: "1",
       title: "My Math Test",
-      sections: [],
+      sections: [{ id: "t1", type: "tracing", tracing: { content: "uppercase", repetitions: 2 } }],
     };
     render(<WorksheetPreview config={config} regenerateKey={0} onRemoveSection={vi.fn()} />);
     expect(screen.getByText("My Math Test")).toBeInTheDocument();
   });
 
-  it("renders grade level", () => {
+  it("renders grade level when sections exist", () => {
     const config: WorksheetConfig = {
       grade: "3",
       title: "Test",
-      sections: [],
+      sections: [{ id: "t1", type: "tracing", tracing: { content: "uppercase", repetitions: 2 } }],
     };
     render(<WorksheetPreview config={config} regenerateKey={0} onRemoveSection={vi.fn()} />);
     expect(screen.getByText("3rd Grade")).toBeInTheDocument();
   });
 
-  it("renders name and date lines", () => {
+  it("renders name and date lines when sections exist", () => {
+    const config: WorksheetConfig = {
+      grade: "1",
+      title: "Test",
+      sections: [{ id: "t1", type: "tracing", tracing: { content: "uppercase", repetitions: 2 } }],
+    };
+    render(<WorksheetPreview config={config} regenerateKey={0} onRemoveSection={vi.fn()} />);
+    expect(screen.getByText(/Name:/)).toBeInTheDocument();
+    expect(screen.getByText(/Date:/)).toBeInTheDocument();
+  });
+
+  it("hides header when no sections", () => {
     const config: WorksheetConfig = {
       grade: "1",
       title: "Test",
       sections: [],
     };
-    render(<WorksheetPreview config={config} regenerateKey={0} onRemoveSection={vi.fn()} />);
-    expect(screen.getByText(/Name:/)).toBeInTheDocument();
-    expect(screen.getByText(/Date:/)).toBeInTheDocument();
+    const { container } = render(<WorksheetPreview config={config} regenerateKey={0} onRemoveSection={vi.fn()} />);
+    expect(container.querySelector(".worksheet-header")).not.toBeInTheDocument();
   });
 
   it("renders empty message when no sections", () => {
@@ -43,7 +53,7 @@ describe("WorksheetPreview", () => {
       sections: [],
     };
     render(<WorksheetPreview config={config} regenerateKey={0} onRemoveSection={vi.fn()} />);
-    expect(screen.getByText(/Add sections/)).toBeInTheDocument();
+    expect(screen.getByText(/Welcome to KidSheets/)).toBeInTheDocument();
   });
 
   it("renders arithmetic section", () => {

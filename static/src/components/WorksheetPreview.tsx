@@ -114,16 +114,20 @@ export const WorksheetPreview = ({ config, regenerateKey, onRemoveSection }: Pro
     (s) => !NO_ANSWER_TYPES.has(s.type)
   );
 
+  const hasSections = config.sections.length > 0;
+
   return (
     <div className="worksheet-preview" id="worksheet-print-area">
-      <div className="worksheet-header">
-        <h1 className="worksheet-title">{config.title || "Worksheet"}</h1>
-        <p className="worksheet-grade">{GRADE_LABELS[config.grade]}</p>
-        <div className="worksheet-name-line">
-          Name: <span className="name-underline" />
-          Date: <span className="name-underline short" />
+      {hasSections && (
+        <div className="worksheet-header">
+          <h1 className="worksheet-title">{config.title || "Worksheet"}</h1>
+          <p className="worksheet-grade">{GRADE_LABELS[config.grade]}</p>
+          <div className="worksheet-name-line">
+            Name: <span className="name-underline" />
+            Date: <span className="name-underline short" />
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="worksheet-body">
         {config.sections.map((section) => (
@@ -142,7 +146,33 @@ export const WorksheetPreview = ({ config, regenerateKey, onRemoveSection }: Pro
           </div>
         ))}
         {config.sections.length === 0 && (
-          <p className="empty-worksheet">Add sections from the config panel to build your worksheet.</p>
+          <div className="welcome-screen">
+            <h2 className="welcome-title">Welcome to KidSheets!</h2>
+            <p className="welcome-subtitle">Create custom printable worksheets in seconds.</p>
+            <div className="welcome-steps">
+              <div className="welcome-step">
+                <span className="welcome-step-number">1</span>
+                <div>
+                  <strong>Choose a grade level</strong>
+                  <p>Select Pre-K through 5th grade from the panel on the left.</p>
+                </div>
+              </div>
+              <div className="welcome-step">
+                <span className="welcome-step-number">2</span>
+                <div>
+                  <strong>Add sections</strong>
+                  <p>Expand a category (Math, Reading, Motor Skills, or Logic) and click to add worksheet sections.</p>
+                </div>
+              </div>
+              <div className="welcome-step">
+                <span className="welcome-step-number">3</span>
+                <div>
+                  <strong>Print your worksheet</strong>
+                  <p>Hit Print or Print with Answers when you're ready!</p>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
       </div>
 

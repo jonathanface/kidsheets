@@ -100,6 +100,7 @@ body::before {
 .app-logo {
   width: 200px;
   height: auto;
+  cursor: pointer;
 }
 .app-header h1 {
   font-family: var(--font-display);
@@ -450,6 +451,62 @@ body::before {
   line-height: 1.6;
 }
 
+.welcome-screen {
+  padding: 3rem 2rem;
+  text-align: center;
+}
+.welcome-title {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 0.4rem;
+}
+.welcome-subtitle {
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  margin-bottom: 2.5rem;
+}
+.welcome-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 420px;
+  margin: 0 auto;
+  text-align: left;
+}
+.welcome-step {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+.welcome-step-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.welcome-step strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--text);
+  margin-bottom: 0.15rem;
+}
+.welcome-step p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
 /* ========= Buttons ========= */
 .button-group {
   display: flex;
@@ -475,10 +532,14 @@ body::before {
   color: #fff;
   box-shadow: 0 2px 8px rgba(59, 130, 200, 0.3);
 }
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
   background: var(--accent-hover);
   transform: translateY(-1px);
   box-shadow: 0 4px 14px rgba(59, 130, 200, 0.35);
+}
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 .btn-secondary {
   background: var(--bg-warm);

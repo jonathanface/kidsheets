@@ -278,10 +278,18 @@ export const ConfigPanel = ({ config, onChange, onRegenerate, onPrint }: Props) 
         </button>
       </div>
       <div className="button-group">
-        <button onClick={() => onPrint(false)} className="btn btn-primary">
+        <button
+          onClick={() => onPrint(false)}
+          className="btn btn-primary"
+          disabled={config.sections.length === 0}
+        >
           Print
         </button>
-        <button onClick={() => onPrint(true)} className="btn btn-primary">
+        <button
+          onClick={() => onPrint(true)}
+          className="btn btn-primary"
+          disabled={config.sections.length === 0}
+        >
           Print with Answers
         </button>
       </div>
