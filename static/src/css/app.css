@@ -1138,13 +1138,27 @@ body::before {
     flex-direction: column;
     padding: 1rem;
   }
+  /* Stack worksheet preview (welcome screen / generated worksheet) above the
+     config panel on mobile so the user sees the result first and scrolls down
+     to edit, instead of having the configuration form sit above the welcome
+     copy. */
+  .app-main .preview-area {
+    order: 1;
+  }
   .app-main aside {
     width: 100%;
+    order: 2;
   }
   .app-logo {
     width: 100px;
   }
   .config-panel {
     position: static;
+  }
+  /* Drop the 11in print-sheet minimum on phones — it makes the welcome
+     bubble occupy a full screen of empty whitespace. Print output still
+     gets its real page size from the @media print rules. */
+  .worksheet-preview {
+    min-height: 0;
   }
 }
